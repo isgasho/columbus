@@ -4,25 +4,20 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"errors"
 
 	"columbus/httputil"
 	"columbus/model"
+	"columbus/db"
 
 	"github.com/gin-gonic/gin"
 )
 
-// ShowAccount godoc
-// @Summary Show a account
-// @Description get string by ID
-// @Tags accounts
-// @Accept  json
-// @Produce  json
-// @Param id path int true "Account ID"
-// @Success 200 {object} model.Account
-// @Failure 400 {object} httputil.HTTPError
-// @Failure 404 {object} httputil.HTTPError
-// @Failure 500 {object} httputil.HTTPError
-// @Router /accounts/{id} [get]
+// TODO 参考swag生成 修改校验逻辑 类似swagger g.json
+type AccountArg struct {
+	Name string `form:"name" json:"name"`
+}
+
 func (c *Controller) ShowAccount(ctx *gin.Context) {
 	id := ctx.Param("id")
 	aid, err := strconv.Atoi(id)
@@ -31,119 +26,89 @@ func (c *Controller) ShowAccount(ctx *gin.Context) {
 		httputil.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
-	account, err := model.AccountOne(aid)
+	account := new(model.Account)
+	account.Id = aid
+	engine, err:= db.SqliteEngine()
+	engine.ShowSQL(true)
+	fmt.Println(account)
 	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	has, err := engine.Get(account)
+	if err != nil{
+		fmt.Println(err)
 		httputil.NewError(ctx, http.StatusNotFound, err)
+		return
+	}
+	if has == false {
+		httputil.NewError(ctx, http.StatusNotFound, errors.New("account not found"))
 		return
 	}
 	ctx.JSON(http.StatusOK, account)
 }
 
-// ListAccounts godoc
-// @Summary List accounts
-// @Description get accounts
-// @Tags accounts
-// @Accept  json
-// @Produce  json
-// @Param q query string false "name search by q" Format(email)
-// @Success 200 {array} model.Account
-// @Failure 400 {object} httputil.HTTPError
-// @Failure 404 {object} httputil.HTTPError
-// @Failure 500 {object} httputil.HTTPError
-// @Router /accounts [get]
 func (c *Controller) ListAccounts(ctx *gin.Context) {
 	q := ctx.Request.URL.Query().Get("q")
-	accounts, err := model.AccountsAll(q)
+	fmt.Sprintf(q)
+	accounts := make([]model.Account, 0)
+	engine, err:= db.SqliteEngine()
 	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = engine.Where("name = ?", q).Find(&accounts)
+	if err != nil{
+		fmt.Println(err)
 		httputil.NewError(ctx, http.StatusNotFound, err)
 		return
 	}
 	ctx.JSON(http.StatusOK, accounts)
 }
 
-// AddAccount godoc
-// @Summary Add a account
-// @Description add by json account
-// @Tags accounts
-// @Accept  json
-// @Produce  json
-// @Param account body model.AddAccount true "Add account"
-// @Success 200 {object} model.Account
-// @Failure 400 {object} httputil.HTTPError
-// @Failure 404 {object} httputil.HTTPError
-// @Failure 500 {object} httputil.HTTPError
-// @Router /accounts [post]
 func (c *Controller) AddAccount(ctx *gin.Context) {
-	var addAccount model.AddAccount
-	if err := ctx.ShouldBindJSON(&addAccount); err != nil {
-		httputil.NewError(ctx, http.StatusBadRequest, err)
-		return
-	}
-	if err := addAccount.Validation(); err != nil {
-		httputil.NewError(ctx, http.StatusBadRequest, err)
-		return
-	}
-	account := model.Account{
-		Name: addAccount.Name,
-	}
-	lastID, err := account.Insert()
+	var accountArg AccountArg
+	ctx.ShouldBindJSON(&accountArg)
+	account := new(model.Account)
+	account.Name = accountArg.Name
+	engine, err:= db.SqliteEngine()
 	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	res, err := engine.Insert(account)
+	if err != nil {
+		fmt.Println(err)
 		httputil.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
-	account.ID = lastID
-	ctx.JSON(http.StatusOK, account)
+	ctx.JSON(http.StatusOK, res)
 }
 
-// UpdateAccount godoc
-// @Summary Update a account
-// @Description Update by json account
-// @Tags accounts
-// @Accept  json
-// @Produce  json
-// @Param  id path int true "Account ID"
-// @Param  account body model.UpdateAccount true "Update account"
-// @Success 200 {object} model.Account
-// @Failure 400 {object} httputil.HTTPError
-// @Failure 404 {object} httputil.HTTPError
-// @Failure 500 {object} httputil.HTTPError
-// @Router /accounts/{id} [patch]
 func (c *Controller) UpdateAccount(ctx *gin.Context) {
+	var accountArg AccountArg
+	ctx.ShouldBindJSON(&accountArg)
+	account := new(model.Account)
+	account.Name = accountArg.Name
 	id := ctx.Param("id")
 	aid, err := strconv.Atoi(id)
 	if err != nil {
-		httputil.NewError(ctx, http.StatusBadRequest, err)
+		fmt.Println(err)
 		return
 	}
-	var updateAccount model.UpdateAccount
-	if err := ctx.ShouldBindJSON(&updateAccount); err != nil {
-		httputil.NewError(ctx, http.StatusBadRequest, err)
+	engine, err:= db.SqliteEngine()
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	account := model.Account{
-		ID:   aid,
-		Name: updateAccount.Name,
-	}
-	err = account.Update()
+	res, err := engine.Id(aid).Update(account)
 	if err != nil {
 		httputil.NewError(ctx, http.StatusNotFound, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, account)
+	ctx.JSON(http.StatusOK, res)
 }
 
-// DeleteAccount godoc
-// @Summary Update a account
-// @Description Delete by account ID
-// @Tags accounts
-// @Accept  json
-// @Produce  json
-// @Param  id path int true "Account ID" Format(int64)
-// @Success 204 {object} model.Account
-// @Failure 400 {object} httputil.HTTPError
-// @Failure 404 {object} httputil.HTTPError
-// @Failure 500 {object} httputil.HTTPError
-// @Router /accounts/{id} [delete]
 func (c *Controller) DeleteAccount(ctx *gin.Context) {
 	id := ctx.Param("id")
 	aid, err := strconv.Atoi(id)
@@ -151,37 +116,16 @@ func (c *Controller) DeleteAccount(ctx *gin.Context) {
 		httputil.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
-	err = model.Delete(aid)
+	account := new(model.Account)
+	engine, err:= db.SqliteEngine()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	res, err := engine.Id(aid).Delete(account)
 	if err != nil {
 		httputil.NewError(ctx, http.StatusNotFound, err)
 		return
 	}
-	ctx.JSON(http.StatusNoContent, gin.H{})
-}
-
-// UploadAccountImage godoc
-// @Summary Upload account image
-// @Description Upload file
-// @Tags accounts
-// @Accept  multipart/form-data
-// @Produce  json
-// @Param  id path int true "Account ID"
-// @Param file formData file true "account image"
-// @Success 200 {object} controller.Message
-// @Failure 400 {object} httputil.HTTPError
-// @Failure 404 {object} httputil.HTTPError
-// @Failure 500 {object} httputil.HTTPError
-// @Router /accounts/{id}/images [post]
-func (c *Controller) UploadAccountImage(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		httputil.NewError(ctx, http.StatusBadRequest, err)
-		return
-	}
-	file, err := ctx.FormFile("file")
-	if err != nil {
-		httputil.NewError(ctx, http.StatusBadRequest, err)
-		return
-	}
-	ctx.JSON(http.StatusOK, Message{Message: fmt.Sprintf("upload compleate userID=%d finename=%s", id, file.Filename)})
+	ctx.JSON(http.StatusNoContent, res)
 }
