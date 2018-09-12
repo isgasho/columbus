@@ -8,7 +8,7 @@ import (
 
 	"columbus/httputil"
 	"columbus/model"
-	"columbus/db"
+	. "columbus/database"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,15 +27,9 @@ func (c *Controller) ShowAccount(ctx *gin.Context) {
 		return
 	}
 	account := new(model.Account)
-	account.Id = aid
-	engine, err:= db.SqliteEngine()
-	engine.ShowSQL(true)
+	account.Uid = aid
 	fmt.Println(account)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	has, err := engine.Get(account)
+	has, err := DB.Get(account)
 	if err != nil{
 		fmt.Println(err)
 		httputil.NewError(ctx, http.StatusNotFound, err)
@@ -52,12 +46,7 @@ func (c *Controller) ListAccounts(ctx *gin.Context) {
 	q := ctx.Request.URL.Query().Get("q")
 	fmt.Sprintf(q)
 	accounts := make([]model.Account, 0)
-	engine, err:= db.SqliteEngine()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	err = engine.Where("name = ?", q).Find(&accounts)
+	err := DB.Where("name = ?", q).Find(&accounts)
 	if err != nil{
 		fmt.Println(err)
 		httputil.NewError(ctx, http.StatusNotFound, err)
@@ -71,12 +60,7 @@ func (c *Controller) AddAccount(ctx *gin.Context) {
 	ctx.ShouldBindJSON(&accountArg)
 	account := new(model.Account)
 	account.Name = accountArg.Name
-	engine, err:= db.SqliteEngine()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	res, err := engine.Insert(account)
+	res, err := DB.Insert(account)
 	if err != nil {
 		fmt.Println(err)
 		httputil.NewError(ctx, http.StatusBadRequest, err)
@@ -96,12 +80,7 @@ func (c *Controller) UpdateAccount(ctx *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	engine, err:= db.SqliteEngine()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	res, err := engine.Id(aid).Update(account)
+	res, err := DB.Id(aid).Update(account)
 	if err != nil {
 		httputil.NewError(ctx, http.StatusNotFound, err)
 		return
@@ -117,12 +96,7 @@ func (c *Controller) DeleteAccount(ctx *gin.Context) {
 		return
 	}
 	account := new(model.Account)
-	engine, err:= db.SqliteEngine()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	res, err := engine.Id(aid).Delete(account)
+	res, err := DB.Id(aid).Delete(account)
 	if err != nil {
 		httputil.NewError(ctx, http.StatusNotFound, err)
 		return

@@ -8,27 +8,18 @@ import (
 	"columbus/httputil"
 	_ "columbus/docs"
 	"columbus/controller"
-	"columbus/config"
+	//"columbus/config"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
-	"github.com/spf13/pflag"
-)
-
-var (
-	cfg = pflag.StringP("config", "c", "", "columbus config file path.")
+	//"github.com/spf13/pflag"
 )
 
 func main() {
 	r := gin.Default()
 
 	c := controller.NewController()
-
-	// 读取配置
-	if err := config.Init(*cfg); err != nil {
-		panic(err)
-	}
 
 	// TODO 更优雅的router方式
 	v1 := r.Group("/api/v1")
