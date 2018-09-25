@@ -11,3 +11,4 @@ import:
   subpackages:
   - swaggerFiles
 - package: github.com/swaggo/swag
+- package: github.com/silenceper/wechat

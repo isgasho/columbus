@@ -39,7 +39,6 @@ func init() {
 
 func initEngine() error {
 	dbEngine := viper.GetString("db.engine")
-	fmt.Println(runmode, viper.GetBool("db.show_sql"), "====")
 	if dbEngine == "postgre" {
 		DB, err = postgreEngine()
 	} else if dbEngine == "mysql" {

@@ -2,11 +2,6 @@
 -- Please do not change the name attributes
 
 -- name: up
-CREATE TABLE IF NOT EXISTS `migrations` (
-  `id`         VARCHAR(15) NOT NULL PRIMARY KEY,
-  `description` TEXT        NOT NULL,
-  `created_at`  TIMESTAMP   NOT NULL
-);
 
 CREATE TABLE IF NOT EXISTS `account` (
   `uid` int unsigned NOT NULL AUTO_INCREMENT,
@@ -20,8 +15,8 @@ CREATE TABLE IF NOT EXISTS `account` (
   `monlog` varchar(140) NOT NULL DEFAULT '' COMMENT '个人状态，签名，独白',
   `introduce` varchar(2022) NOT NULL COMMENT '个人简介',
   `is_root` tinyint unsigned NOT NULL DEFAULT 0 COMMENT '是否超级用户，不受权限控制：1-是',
-  `ctime` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`uid`),
   UNIQUE KEY (`username`),
   UNIQUE KEY (`email`)
@@ -36,15 +31,14 @@ CREATE TABLE IF NOT EXISTS `authentication` (
   `avatar` varchar(255) NOT NULL DEFAULT '' COMMENT '用户微信头像',
   `open_info` varchar(1024) NOT NULL DEFAULT '' COMMENT '用户微信的其他信息，json格式',
   `uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '用户UID',
-  `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `openid` (`openid`),
+  UNIQUE KEY `open_id` (`open_id`),
   KEY `uid` (`uid`),
   KEY `updated_at` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='微信用户绑定表';
 
 -- name: down
-DROP TABLE IF EXISTS migrations;
-DROP TABLE IF EXISTS account;
-DROP TABLE IF EXISTS authentication;
+-- DROP TABLE IF EXISTS account;
+-- DROP TABLE IF EXISTS authentication;

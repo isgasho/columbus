@@ -7,7 +7,7 @@ import (
 	"errors"
 
 	"columbus/httputil"
-	"columbus/model"
+	"columbus/models"
 	. "columbus/database"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +26,7 @@ func (c *Controller) ShowAccount(ctx *gin.Context) {
 		httputil.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
-	account := new(model.Account)
+	account := new(models.Account)
 	account.Uid = aid
 	fmt.Println(account)
 	has, err := DB.Get(account)
@@ -45,7 +45,7 @@ func (c *Controller) ShowAccount(ctx *gin.Context) {
 func (c *Controller) ListAccounts(ctx *gin.Context) {
 	q := ctx.Request.URL.Query().Get("q")
 	fmt.Sprintf(q)
-	accounts := make([]model.Account, 0)
+	accounts := make([]models.Account, 0)
 	err := DB.Where("name = ?", q).Find(&accounts)
 	if err != nil{
 		fmt.Println(err)
@@ -58,7 +58,7 @@ func (c *Controller) ListAccounts(ctx *gin.Context) {
 func (c *Controller) AddAccount(ctx *gin.Context) {
 	var accountArg AccountArg
 	ctx.ShouldBindJSON(&accountArg)
-	account := new(model.Account)
+	account := new(models.Account)
 	account.Name = accountArg.Name
 	res, err := DB.Insert(account)
 	if err != nil {
@@ -72,7 +72,7 @@ func (c *Controller) AddAccount(ctx *gin.Context) {
 func (c *Controller) UpdateAccount(ctx *gin.Context) {
 	var accountArg AccountArg
 	ctx.ShouldBindJSON(&accountArg)
-	account := new(model.Account)
+	account := new(models.Account)
 	account.Name = accountArg.Name
 	id := ctx.Param("id")
 	aid, err := strconv.Atoi(id)
@@ -95,7 +95,7 @@ func (c *Controller) DeleteAccount(ctx *gin.Context) {
 		httputil.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
-	account := new(model.Account)
+	account := new(models.Account)
 	res, err := DB.Id(aid).Delete(account)
 	if err != nil {
 		httputil.NewError(ctx, http.StatusNotFound, err)
