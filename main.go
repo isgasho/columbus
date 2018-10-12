@@ -1,49 +1,45 @@
 package main
 
 import (
-	//"fmt"
-	"errors"
-	"net/http"
-
-	"columbus/httputil"
+	"columbus/utils"
 	_ "columbus/docs"
-	"columbus/controller"
+	"columbus/api"
 	//"columbus/config"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
-	//"github.com/spf13/pflag"
 )
+
+// @title Swagger Example API
+// @version 0.0.1
+// @description  This is a sample server Petstore server.
+// @BasePath /api/v1/
 
 func main() {
 	r := gin.Default()
 
-	c := controller.NewController()
-
-	// TODO 更优雅的router方式
 	v1 := r.Group("/api/v1")
-	{
-		accounts := v1.Group("/accounts")
-		{
-			accounts.GET(":id", c.ShowAccount)
-			accounts.GET("", c.ListAccounts)
-			accounts.POST("", c.AddAccount)
-			accounts.DELETE(":id", c.DeleteAccount)
-			accounts.PATCH(":id", c.UpdateAccount)
-		}
-	}
+	// 注册
+	accountsRegister(v1)
+	v1.Use(utils.JWTAuth()) // 使用中间件 进行auth校验
+    accountsManager(v1)
 
+    // 丝袜哥
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.Run(":8080")
 }
 
-func auth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if len(c.GetHeader("Authorization")) == 0 {
-			httputil.NewError(c, http.StatusUnauthorized, errors.New("Authorization is required Header"))
-			c.Abort()
-		}
-		c.Next()
-	}
+func accountsRegister(r *gin.RouterGroup) {
+	c := api.NewController()
+	r.POST("/accounts/token", c.AccountToken)
+}
+
+func accountsManager(r *gin.RouterGroup) {
+	c := api.NewController()
+	r.GET(":id", c.ShowAccount)
+	r.GET("", c.ListAccounts)
+	r.POST("", c.AddAccount)
+	r.DELETE(":id", c.DeleteAccount)
+	r.PATCH(":id", c.UpdateAccount)
 }

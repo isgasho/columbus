@@ -1,14 +1,25 @@
 package: columbus
 import:
 - package: github.com/fsnotify/fsnotify
+  version: ^1.4.7
 - package: github.com/gin-gonic/gin
+  version: ^1.3.0
 - package: github.com/go-sql-driver/mysql
+  version: ^1.4.0
 - package: github.com/go-xorm/xorm
+  version: ^0.7.0
 - package: github.com/lexkong/log
-- package: github.com/satori/go.uuid
+- package: github.com/lib/pq
+  version: ^1.0.0
+- package: github.com/mattn/go-sqlite3
+  version: ^1.9.0
+- package: github.com/spf13/pflag
+  version: ^1.0.3
 - package: github.com/spf13/viper
+  version: ^1.2.1
 - package: github.com/swaggo/gin-swagger
+  version: ^1.0.0
   subpackages:
   - swaggerFiles
 - package: github.com/swaggo/swag
-- package: github.com/silenceper/wechat
+  version: ^1.3.2

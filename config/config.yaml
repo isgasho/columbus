@@ -27,3 +27,8 @@ db:
   charset: utf8
   show_sql: true
   max_conn: 5
+weixin:
+  appid: 123456
+  secret: 123456
+basic:
+  token: jjyy
