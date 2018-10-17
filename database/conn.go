@@ -4,8 +4,8 @@ import (
 	//"database/sql"
 	//"errors"
 	"fmt"
-
-	"columbus/config"
+	_ "columbus/config"
+	. "columbus/log"
 
 	"github.com/spf13/viper"
 	_ "github.com/go-sql-driver/mysql"
@@ -13,7 +13,6 @@ import (
 	_ "github.com/lib/pq"
 	//"github.com/go-xorm/core"
 	"github.com/go-xorm/xorm"
-	"github.com/spf13/pflag"
 )
 
 var DB *xorm.Engine
@@ -22,15 +21,7 @@ var dns string
 
 var err error
 
-var (
-	cfg = pflag.StringP("config", "c", "", "columbus config file path.")
-)
-
 func init() {
-	// init config
-	if err := config.Init(*cfg); err != nil {
-		panic(err)
-	}
 	// 启动时就打开数据库连接
 	if err = initEngine(); err != nil {
 		panic(err)
@@ -61,20 +52,20 @@ func initEngine() error {
 
 func mysqlEngine() (*xorm.Engine, error){
 	setEngine()
-    fmt.Printf("mysql db config-> %s\n", dns)
+	Info.Println("mysql db config->", dns)
     return xorm.NewEngine("mysql", dns)
 }
 
 func postgreEngine() (*xorm.Engine, error){
 	setEngine()
-	fmt.Printf("postgre db config-> %s\n", dns)
+	Info.Println("postgre db config->", dns)
 	return xorm.NewEngine("postgres", dns)
 }
 
 func sqliteEngine() (*xorm.Engine, error) {
 	f := "columbus.db"
 	//os.Remove(f)
-	fmt.Printf("sqlite db")
+	Info.Println("sqlite db")
 	return xorm.NewEngine("sqlite3", f)
 }
 

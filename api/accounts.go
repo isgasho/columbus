@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"errors"
@@ -9,6 +8,7 @@ import (
 	"columbus/utils"
 	"columbus/models"
 	. "columbus/database"
+	. "columbus/log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,6 +22,7 @@ type AccountArg struct {
 // @Summary Show a account
 // @Description get string by ID
 // @Tags accounts
+// @Security Bearer
 // @Accept  json
 // @Produce  json
 // @Param id path int true "Account ID"
@@ -32,6 +33,7 @@ type AccountArg struct {
 // @Router /accounts/{id} [get]
 func (c *Controller) ShowAccount(ctx *gin.Context) {
 	id := ctx.Param("id")
+	Info.Println(id, "query id....")
 	aid, err := strconv.Atoi(id)
 
 	if err != nil {
@@ -40,10 +42,10 @@ func (c *Controller) ShowAccount(ctx *gin.Context) {
 	}
 	account := new(models.Account)
 	account.Uid = aid
-	fmt.Println(account)
+	Info.Println(account)
 	has, err := DB.Get(account)
 	if err != nil{
-		fmt.Println(err)
+		Error.Println(err)
 		utils.NewError(ctx, http.StatusNotFound, err)
 		return
 	}
@@ -58,6 +60,7 @@ func (c *Controller) ShowAccount(ctx *gin.Context) {
 // @Summary List accounts
 // @Description get accounts
 // @Tags accounts
+// @Security Bearer
 // @Accept  json
 // @Produce  json
 // @Param q query string false "name search by q" Format(email)
@@ -67,12 +70,11 @@ func (c *Controller) ShowAccount(ctx *gin.Context) {
 // @Failure 500 {object} utils.HTTPError
 // @Router /accounts [get]
 func (c *Controller) ListAccounts(ctx *gin.Context) {
-	q := ctx.Request.URL.Query().Get("q")
-	fmt.Sprintf(q)
+	//q := ctx.Request.URL.Query().Get("q")
 	accounts := make([]models.Account, 0)
-	err := DB.Where("name = ?", q).Find(&accounts)
+	err := DB.Asc("uid").Find(&accounts)
 	if err != nil{
-		fmt.Println(err)
+		Error.Println(err)
 		utils.NewError(ctx, http.StatusNotFound, err)
 		return
 	}
@@ -83,6 +85,7 @@ func (c *Controller) ListAccounts(ctx *gin.Context) {
 // @Summary Add a account
 // @Description add by json account
 // @Tags accounts
+// @Security Bearer
 // @Accept  json
 // @Produce  json
 // @Param account body AccountArg true "Add account"
@@ -98,7 +101,7 @@ func (c *Controller) AddAccount(ctx *gin.Context) {
 	account.Name = accountArg.Name
 	res, err := DB.Insert(account)
 	if err != nil {
-		fmt.Println(err)
+		Error.Println(err)
 		utils.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
@@ -110,6 +113,7 @@ func (c *Controller) AddAccount(ctx *gin.Context) {
 // @Description Update by json account
 // @Tags accounts
 // @Accept  json
+// @Security Bearer
 // @Produce  json
 // @Param  id path int true "Account ID"
 // @Param  account body AccountArg true "Update account"
@@ -126,7 +130,7 @@ func (c *Controller) UpdateAccount(ctx *gin.Context) {
 	id := ctx.Param("id")
 	aid, err := strconv.Atoi(id)
 	if err != nil {
-		fmt.Println(err)
+		Error.Println(err)
 		return
 	}
 	res, err := DB.Id(aid).Update(account)
@@ -142,6 +146,7 @@ func (c *Controller) UpdateAccount(ctx *gin.Context) {
 // @Description Delete by account ID
 // @Tags accounts
 // @Accept  json
+// @Security Bearer
 // @Produce  json
 // @Param  id path int true "Account ID" Format(int64)
 // @Success 204 {object} models.Account
@@ -192,7 +197,7 @@ func (c *Controller) AccountToken(ctx *gin.Context) {
 		// 建立用户信息
 		_, err := DB.Insert(account)
 		if err != nil {
-			fmt.Println(err)
+			Error.Println(err)
 			utils.NewError(ctx, http.StatusBadRequest, err)
 			return
 		}

@@ -4,7 +4,7 @@ import (
 	"columbus/utils"
 	_ "columbus/docs"
 	"columbus/api"
-	//"columbus/config"
+	_ "columbus/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
@@ -16,30 +16,36 @@ import (
 // @description  This is a sample server Petstore server.
 // @BasePath /api/v1/
 
+// @securityDefinitions.apiKey Bearer
+// @type apiKey
+// @in header
+// @name Authorization
+
 func main() {
 	r := gin.Default()
 
 	v1 := r.Group("/api/v1")
 	// 注册
-	accountsRegister(v1)
+	c := api.NewController()
+	accountsRegister(v1, c)
 	v1.Use(utils.JWTAuth()) // 使用中间件 进行auth校验
-    accountsManager(v1)
+	{
+        accountsManager(v1, c)
+    }
 
     // 丝袜哥
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.Run(":8080")
 }
 
-func accountsRegister(r *gin.RouterGroup) {
-	c := api.NewController()
+func accountsRegister(r *gin.RouterGroup, c *api.Controller) {
 	r.POST("/accounts/token", c.AccountToken)
 }
 
-func accountsManager(r *gin.RouterGroup) {
-	c := api.NewController()
-	r.GET(":id", c.ShowAccount)
-	r.GET("", c.ListAccounts)
-	r.POST("", c.AddAccount)
-	r.DELETE(":id", c.DeleteAccount)
-	r.PATCH(":id", c.UpdateAccount)
+func accountsManager(r *gin.RouterGroup, c *api.Controller) {
+	r.GET("/accounts/:id", c.ShowAccount)
+	r.GET("/accounts", c.ListAccounts)
+	r.POST("/accounts", c.AddAccount)
+	r.DELETE("/accounts/:id", c.DeleteAccount)
+	r.PATCH("/accounts/:id", c.UpdateAccount)
 }

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"time"
-	"fmt"
 
 	"columbus/models"
+	. "columbus/log"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ import (
 
 
 const (
-	JWTSigningKey string        = "nirmalvatsyayan"
+	JWTSigningKey string        = "53a01e6bd34caef997ddd24f5ee9d3e1"
 	ExpireTime    time.Duration = time.Minute * 60 * 24 * 30
 	Realm         string        = "jwt auth"
 )
@@ -30,7 +30,6 @@ var (
 	TokenNotValidYet error  = errors.New("Token not active yet")
 	TokenMalformed   error  = errors.New("That's not even a token")
 	TokenInvalid     error  = errors.New("Couldn't handle this token:")
-	SignKey          string = "newtrekWang"
 )
 
 // 载荷，可以加一些自己需要的信息
@@ -50,13 +49,7 @@ func NewJWT() *JWT {
 
 // 获取signKey
 func GetSignKey() string {
-	return SignKey
-}
-
-// 这是SignKey
-func SetSignKey(key string) string {
-	SignKey = key
-	return SignKey
+	return JWTSigningKey
 }
 
 // 解析Tokne
@@ -65,6 +58,7 @@ func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 		return j.SigningKey, nil
 	})
 	if err != nil {
+		Error.Println(err)
 		if ve, ok := err.(*jwt.ValidationError); ok {
 			if ve.Errors&jwt.ValidationErrorMalformed != 0 {
 				return nil, TokenMalformed
@@ -103,7 +97,8 @@ func JWTAuth() gin.HandlerFunc {
 			// 塞入用户信息
 			c.Set("user", claims)
 			if err != nil {
-				NewError(c, http.StatusUnauthorized, errors.New("Authorization is required Header"))
+				Error.Println(err)
+				NewError(c, http.StatusUnauthorized, errors.New("Authorization is error"))
 				c.Abort()
 			}
 		}
@@ -124,16 +119,16 @@ func GenerateToken(user models.Account) string {
 	claims["id"] = user.Uid
 	claims["exp"] = expire.Unix()
 	token.Claims = claims
-	// Sign and get the complete encoded token as a string
 
+	// Sign and get the complete encoded token as a string
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
 
 
 	if err != nil {
-		fmt.Println(err)
+		Error.Println(err)
 		return ""
 	}
 
-	fmt.Println(tokenString)
+	Info.Println(tokenString)
 	return tokenString
 }

@@ -8,24 +8,15 @@ tls:
   addr: :8081
   cert: conf/server.crt
   key: conf/server.key
-log:
-  writers: stdout
-  logger_level: DEBUG
-  logger_file: log/apiserver.log
-  log_format_text: true
-  rollingPolicy: size
-  log_rotate_date: 1
-  log_rotate_size: 1
-  log_backup_count: 7
 db:
   engine: mysql
-  name: columbus
+  dbname: columbus
   host: 127.0.0.1
   port: 3306
   username: columbus
   password: cccc
   charset: utf8
-  show_sql: true
+  show_sql: false
   max_conn: 5
 weixin:
   appid: 123456
