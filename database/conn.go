@@ -52,21 +52,19 @@ func initEngine() error {
 
 func mysqlEngine() (*xorm.Engine, error){
 	setEngine()
-	Info.Println("mysql db config->", dns)
+	Info.Println("Mysql config: ", dns)
     return xorm.NewEngine("mysql", dns)
 }
 
 func postgreEngine() (*xorm.Engine, error){
 	setEngine()
-	Info.Println("postgre db config->", dns)
+	Info.Println("Postgre config: ", dns)
 	return xorm.NewEngine("postgres", dns)
 }
 
 func sqliteEngine() (*xorm.Engine, error) {
-	f := "columbus.db"
-	//os.Remove(f)
-	Info.Println("sqlite db")
-	return xorm.NewEngine("sqlite3", f)
+	Info.Println("Sqlite db")
+	return xorm.NewEngine("sqlite3", "columbus.db")
 }
 
 func setEngine() {

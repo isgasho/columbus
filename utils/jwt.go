@@ -7,14 +7,15 @@ import (
 
 	"columbus/models"
 	. "columbus/log"
+	_ "columbus/config"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 
 const (
-	JWTSigningKey string        = "53a01e6bd34caef997ddd24f5ee9d3e1"
 	ExpireTime    time.Duration = time.Minute * 60 * 24 * 30
 	Realm         string        = "jwt auth"
 )
@@ -49,7 +50,8 @@ func NewJWT() *JWT {
 
 // 获取signKey
 func GetSignKey() string {
-	return JWTSigningKey
+	sign_key := viper.GetString("jwt.sign_key")
+	return sign_key
 }
 
 // 解析Tokne
@@ -121,7 +123,8 @@ func GenerateToken(user models.Account) string {
 	token.Claims = claims
 
 	// Sign and get the complete encoded token as a string
-	tokenString, err := token.SignedString([]byte(JWTSigningKey))
+	sign_key := GetSignKey()
+	tokenString, err := token.SignedString([]byte(sign_key))
 
 
 	if err != nil {

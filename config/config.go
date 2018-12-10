@@ -21,10 +21,11 @@ var (
 
 func init() {
 	// init config
-	Info.Println("init config......")
 	if err := Init(*cfg); err != nil {
+		Error.Println(err)
 		panic(err)
 	}
+	Info.Println("Init config success...")
 }
 
 func Init(cfg string) error {
